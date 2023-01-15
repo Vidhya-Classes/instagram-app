@@ -25,6 +25,7 @@
   },
   "plugins": ["react", "@typescript-eslint"],
   "rules": {
+    "import/named": 0,
     "react/jsx-one-expression-per-line": "off",
     "react/jsx-uses-react": "off",
     "react/react-in-jsx-scope": "off",
