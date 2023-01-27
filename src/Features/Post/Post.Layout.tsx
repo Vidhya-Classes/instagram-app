@@ -1,59 +1,53 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent, useMemo } from 'react';
 import ImageFilter from 'react-image-filter';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { v4 } from 'uuid';
 import Modal from '@mui/material/Modal';
 import { TextareaAutosize } from '@mui/material';
-// import { Demo } from './testCrop';
 import axios from 'axios';
-import { Demo } from './testCrop';
-interface Upload {
-  id: string;
-  photo: string;
-  description: string;
-  filterChoose: string;
-}
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'white',
-  border: '2px solid #000',
-  boxShadow: 24,
-  pt: 2,
-  px: 4,
-  pb: 3,
-};
+import { SelectedFile } from './Post.Types';
+import { FilePickerModal } from './Post.Styles';
+import { loadPostAPI } from './Post.API';
 
-export default function CreateNewPost(): JSX.Element {
-  const [selectFilesForUser, setSelectFilesByUser] = useState<File>();
-  const [filePreview, setFilePreview] = useState<string>('');
+export default function PostUI(): JSX.Element {
+  const [selectFilesForUser, setSelectFilesByUser] = useState<File | null>(null);
   const [caption, setCaption] = useState<string>('');
-  const [postUpload, setPostUpload] = useState<Upload[]>([]);
+  const [postUpload, setPostUpload] = useState<SelectedFile[]>([]);
   const [filter, setFilter] = useState<string>('');
-  const [backendFilter, setBackendFilter] = useState([]); //having doubt
+  const [backendFilter, setBackendFilter] = useState<string[]>([]); //having doubt
   const [open, setOpen] = useState<boolean>(false);
-  const [dataFromback, setDataFromback] = useState([]);
+  const [dataFromback, setDataFromback] = useState<string[]>([]);
+  const [page] = useState<number>(1);
+  const [limit] = useState<number>(10);
 
-  useEffect(() => {
+  const filePreview = useMemo(() => {
     if (selectFilesForUser) {
-      setFilePreview(URL.createObjectURL(selectFilesForUser));
+      return URL.createObjectURL(selectFilesForUser);
     }
+    return '';
   }, [selectFilesForUser]);
-  useEffect(() => {
-    console.log('SK@');
-    const baseURL = 'http://localhost:4000/post/list?userId=1234';
-    axios.get(baseURL).then((response) => {
-      response.data.data.results[0].response.map((item) => {
-        setBackendFilter((preState) => [...preState, item.filter]); //backend se jo filter aaya ussko sat kia
-        return item.attachments.map((item_nest) => {
-          return setDataFromback((prestate) => [...prestate, item_nest.url]);
-        });
+
+  const loadPosts = async () => {
+    const postList: any = await loadPostAPI(1234, page, limit);
+
+    if (
+      !postList?.data?.data?.results[0].response ||
+      postList?.data?.data?.results[0]?.response?.length === 0
+    ) {
+      return;
+    }
+
+    postList?.data?.data?.results[0].response.map((item: any) => {
+      setBackendFilter((preState) => [...preState, item.filter]); //backend se jo filter aaya ussko sat kia
+      return item.attachments.map((item_nest) => {
+        return setDataFromback((prestate) => [...prestate, item_nest.url]);
       });
     });
+  };
+
+  useEffect(() => {
+    loadPosts();
   }, []);
 
   /**
@@ -79,8 +73,8 @@ export default function CreateNewPost(): JSX.Element {
     if (!selectFilesForUser) {
       return;
     }
-    setFilePreview('');
-    setPostUpload((prevState: Upload[]) => [
+    setSelectFilesByUser(null);
+    setPostUpload((prevState: SelectedFile[]) => [
       ...prevState,
       { id: v4(), photo: filePreview, description: caption, filterChoose: filter },
     ]);
@@ -149,7 +143,7 @@ export default function CreateNewPost(): JSX.Element {
         aria-labelledby="parent-modal-title"
         aria-describedby="parent-modal-description"
       >
-        <Box sx={{ ...style, width: 600, height: 500 }}>
+        <Box sx={{ ...FilePickerModal, width: 600, height: 500 }}>
           {/* <Demo photo={filePreview} /> */}
           <Button variant="contained" component="label">
             Upload File
