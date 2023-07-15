@@ -1,17 +1,18 @@
 import { Button } from '@mui/material';
-import { useEffect } from 'react';
-import { getUsers } from './Home.API';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
-  useEffect(() => {
-    (async () => {
-      const users = await getUsers();
-      console.log(users);
-    })();
-  }, []);
+  const navigate = useNavigate();
+
+  const onLogOut = () => {
+    localStorage.removeItem('isLoggedIn');
+    navigate(0);
+  };
+
   return (
     <div>
       <Button variant="contained">Hello World</Button>
+      <Button onClick={onLogOut}>Logout</Button>
     </div>
   );
 }

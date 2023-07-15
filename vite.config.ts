@@ -5,21 +5,5 @@ import { splitVendorChunkPlugin } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    viteCompression({ algorithm: 'gzip' }),
-    splitVendorChunkPlugin(),
-    createHtmlPlugin({
-      minify: true,
-    }),
-  ],
-  server: {
-    host: true,
-  },
-  build: {
-    sourcemap: false,
-    cssCodeSplit: true,
-    minify: true,
-    chunkSizeWarningLimit: 250,
-  },
+  plugins: [react()],
 });
